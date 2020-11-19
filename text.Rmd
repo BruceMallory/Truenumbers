@@ -60,7 +60,7 @@ ch_num <- function(query) {
   n <- length(query)
   vector <- rep(0, n)
   for(i in 1 : n) {
-    vector[i] <- as.numeric(substring(str_split(tnum.getAttrFromList(num2[i], "subject"), "[:/]")[[1]][4], 9))
+    vector[i] <- as.numeric(substring(str_split(tnum.getAttrFromList(query[i], "subject"), "[:/]")[[1]][4], 9))
   }
   return(vector)
 }
@@ -75,7 +75,7 @@ para_num <- function(query) {
   n <- length(query)
   vector <- rep(0, n)
   for(i in 1 : n) {
-    vector[i] <- as.numeric(substring(str_split(tnum.getAttrFromList(num2[i], "subject"), "[:/]")[[1]][5], 11))
+    vector[i] <- as.numeric(substring(str_split(tnum.getAttrFromList(query[i], "subject"), "[:/]")[[1]][5], 11))
   }
   return(vector)
 }
@@ -105,5 +105,49 @@ View(marry_df)
 picmarry <- tnum.makePhraseGraphFromPathList(marry_df$subject)
 tnum.plotGraph(picmarry)
 ```
+
+# Three major male characters: Darcy, Bingley & Wickhamn
+
+```{r}
+tnum.tagByQuery("*pride* has text = REGEXP(\"Darcy\")", "reference:Darcy")
+Darcy <- tnum.query("*pride* has text = REGEXP(\"Darcy\")", max = 400) 
+```
+
+```{r}
+tnum.tagByQuery("*pride* has text = REGEXP(\"Bingley\")", "reference:Bingley")
+Bingley <- tnum.query("*pride* has text = REGEXP(\"Bingley\")", max = 310) 
+```
+
+```{r}
+tnum.tagByQuery("*pride* has text = REGEXP(\"Wickham\")", "reference:Wickham")
+Wickham <- tnum.query("*pride* has text = REGEXP(\"Wickham\")", max = 190) 
+```
+
+```{r}
+Darcy_n <- ch_num(Darcy)
+Bingley_n <- ch_num(Bingley)
+Wickham_n <- ch_num(Wickham)
+```
+
+```{r}
+Darcy_table <- as.data.frame(table(Darcy_n))
+Bingley_table <- as.data.frame(table(Bingley_n))
+Wickham_table <- as.data.frame(table(Wickham_n))
+```
+
+
+```{r}
+ggplot() +
+  geom_path(data = Darcy_table, aes(x= as.numeric(Darcy_n), y = as.numeric(Freq), color = "red")) +
+  geom_point(data = Darcy_table, aes(x= as.numeric(Darcy_n), y = as.numeric(Freq), color = "red")) +
+  geom_path(data = Bingley_table, aes(x= as.numeric(Bingley_n), y = as.numeric(Freq), color = "blue")) +
+  geom_point(data = Bingley_table, aes(x= as.numeric(Bingley_n), y = as.numeric(Freq), color = "blue")) +
+  geom_path(data = Wickham_table, aes(x= as.numeric(Wickham_n), y = as.numeric(Freq), color = "green")) +
+  geom_point(data = Wickham_table, aes(x= as.numeric(Wickham_n), y = as.numeric(Freq), color = "green")) +
+  scale_color_discrete(name = "Character Name", labels = c("Bingley", "Wickham",  "Darcy")) +
+  labs(x = "Chapter Number", y = "Frequency")
+```
+
+
 
 
