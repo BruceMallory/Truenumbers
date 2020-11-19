@@ -60,7 +60,7 @@ ch_num <- function(query) {
   n <- length(query)
   vector <- rep(0, n)
   for(i in 1 : n) {
-    vector[i] <- as.numeric(substring(str_split(tnum.getAttrFromList(num2[i], "subject"), "[:/]")[[1]][4], 9))
+    vector[i] <- as.numeric(substring(str_split(tnum.getAttrFromList(query[i], "subject"), "[:/]")[[1]][4], 9))
   }
   return(vector)
 }
@@ -75,7 +75,7 @@ para_num <- function(query) {
   n <- length(query)
   vector <- rep(0, n)
   for(i in 1 : n) {
-    vector[i] <- as.numeric(substring(str_split(tnum.getAttrFromList(num2[i], "subject"), "[:/]")[[1]][5], 11))
+    vector[i] <- as.numeric(substring(str_split(tnum.getAttrFromList(query[i], "subject"), "[:/]")[[1]][5], 11))
   }
   return(vector)
 }
@@ -123,7 +123,23 @@ ggplot(marry_data, aes(ch)) +
 tnum.tagByQuery("*pride* has text = REGEXP(\"family\")", "reference:family")
 family <- tnum.query("*pride* has text = REGEXP(\"family\")", max = 155) 
 family_df <- tnum.objectsToDf(family)
-View(family_df)
+#View(family_df)
 picfamily <- tnum.makePhraseGraphFromPathList(love_df$subject)
 tnum.plotGraph(picfamily)
 ```
+```{r}
+tnum.tagByQuery("*pride* has text = REGEXP(\"darcy\")", "reference:darcy")
+darcy <- tnum.query("*pride* has text = REGEXP(\"darcy\")", max = 150) 
+
+darcy_df <- tnum.objectsToDf(darcy)
+#View(family_df)
+# picdarcy <- tnum.makePhraseGraphFromPathList(darcy_df$subject)
+# tnum.plotGraph(picdarcy)
+```
+
+
+
+
+
+
+
