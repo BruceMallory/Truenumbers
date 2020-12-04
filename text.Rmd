@@ -32,9 +32,29 @@ tax1
 ```
 
 ```{r}
-num1 <- tnum.query("*pride* has count:word")
+num1 <- tnum.query("*pride* has count:word", max = 5050)
+num1_df <- tnum.objectsToDf(num1)
 num2 <- tnum.query("*pride* has text")
+num2_df <- tnum.objectsToDf(num2)
 ```
+
+```{r}
+word_data <- data.frame(ch = ch_num_df(num1_df), para = para_num_df(num1_df), num = num1_df$numeric.value)
+word_data <- word_data %>% 
+  group_by(ch) %>% 
+  summarise(count = sum(num))
+```
+
+```{r}
+ggplot(data = word_data, aes(x= as.factor(ch), y = count, group=1)) +
+  geom_line(color = "orange") +
+  geom_point() +
+  labs(x = "Chapter Number", y = "Number of Words") +
+  ggtitle("Word Count In Each Chapter") +
+  theme(plot.title = element_text(hjust = 0.5)) +
+  theme(axis.text = element_text(size = 7)) 
+```
+
 
 
 # Tag: love
@@ -56,6 +76,7 @@ tnum.plotGraph(piclove)
 
 
 ```{r}
+# For query
 ch_num <- function(query) {
   n <- length(query)
   vector <- rep(0, n)
@@ -66,11 +87,24 @@ ch_num <- function(query) {
 }
 ```
 
+```{r}
+# For data frame
+ch_num_df <- function(df) {
+  n <- nrow(df)
+  vector <- rep(0, n)
+  subject <- df$subject
+  for(i in 1 : n) {
+    vector[i] <- as.numeric(substring(str_split(subject[i], "[:/]")[[1]][4], 9))
+  }
+  return(vector)
+}
+```
 
 
 ## Creating Functions For Paragraph Number
 
 ```{r}
+# For query
 para_num <- function(query) {
   n <- length(query)
   vector <- rep(0, n)
@@ -81,6 +115,18 @@ para_num <- function(query) {
 }
 ```
 
+```{r}
+# For data frame
+para_num_df <- function(df) {
+  n <- nrow(df)
+  vector <- rep(0, n)
+  subject <- df$subject
+  for(i in 1 : n) {
+    vector[i] <- as.numeric(substring(str_split(subject[i], "[:/]")[[1]][5], 11))
+  }
+  return(vector)
+}
+```
 
   We also showed a distribution plot by using ggplot package, which presents the appearance frequency of the word "love" in different chapters and paragraphs. And it is interesting but not surprising to see that the word "love" occurs relatively more often towards the end, where the story is approaching the happy ending. 
   
@@ -101,10 +147,22 @@ ggplot(love_data, aes(ch)) +
 tnum.tagByQuery("*pride* has text = REGEXP(\"marry\")", "reference:marry")
 marry <- tnum.query("*pride* has text = REGEXP(\"marry\")", max = 60) 
 marry_df <- tnum.objectsToDf(marry)
-View(marry_df)
+#View(marry_df)
 picmarry <- tnum.makePhraseGraphFromPathList(marry_df$subject)
 tnum.plotGraph(picmarry)
 ```
+
+ 
+```{r}
+marry_data <- data.frame(ch = ch_num(marry), para = para_num(marry))
+ggplot(marry_data, aes(ch)) +
+  geom_histogram(aes(fill = as.factor(para)), binwidth = 1)+
+  labs(title = "Distribution of The Word Marry")+
+  theme(plot.title = element_text(hjust = 0.5)) +
+  labs(fill = "Paragraph Number") +
+  xlab("Chapter Number")
+```
+
 
 # Three major male characters: Darcy, Bingley & Wickhamn
 
@@ -144,10 +202,44 @@ ggplot() +
   geom_point(data = Bingley_table, aes(x= as.numeric(Bingley_n), y = as.numeric(Freq), color = "blue")) +
   geom_path(data = Wickham_table, aes(x= as.numeric(Wickham_n), y = as.numeric(Freq), color = "green")) +
   geom_point(data = Wickham_table, aes(x= as.numeric(Wickham_n), y = as.numeric(Freq), color = "green")) +
-  scale_color_discrete(name = "Character Name", labels = c("Bingley", "Wickham",  "Darcy")) +
-  labs(x = "Chapter Number", y = "Frequency")
+  labs(x = "Chapter Number", y = "Frequency") +
+  scale_color_identity(name = "Character name",
+                          breaks = c("red", "blue", "green"),
+                          labels = c("Darcy", "Bingley", "Wickham"),
+                          guide = "legend")
+```
+
+# Tag: where Darcy and Elizabeth co-occur
+
+```{r}
+tnum.tagByQuery("*pride* has text = REGEXP(\"Elizabeth\")", "reference:Elizabeth_co")
+Elizabeth <- tnum.query("*pride* has text = REGEXP(\"Elizabeth\")", max = 610) 
+Elizabeth_df <- tnum.objectsToDf(Elizabeth)
+tnum.tagByQuery("*pride* has text = REGEXP(\"Darcy\")", "reference:Darcy_co")
+Darcy_co <- tnum.query("*pride* has text = REGEXP(\"Darcy\")", max = 400) 
+Darcy_co_df <- tnum.objectsToDf(Darcy_co)
 ```
 
 
+  Since we are working with a data frame, by using the dplyr package, we could find where our tag: Elizabeth_co occurs in the data frame: Darcy_co_df
+  
+```{r}
+co_occur <- dplyr::filter(Darcy_co_df, grepl('reference:Elizabeth_co', tags))
+co_ch <- ch_num_df(co_occur)
+co_para <- para_num_df(co_occur)
+```
+  
+  
+```{r}
+co_data <- data.frame(ch = co_ch, para = co_para)
+ggplot(marry_data, aes(ch)) +
+  geom_histogram(aes(fill = as.factor(para)), binwidth = 1)+
+  labs(title = "Distribution of The Co-occurrence of Darcy and Elizabeth")+
+  theme(plot.title = element_text(hjust = 0.5)) +
+  labs(fill = "Paragraph Number") +
+  xlab("Chapter Number")
+```
 
-
+# Suggestions for Tnum package
+  
+  
